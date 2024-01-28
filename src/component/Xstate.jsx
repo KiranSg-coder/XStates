@@ -3,109 +3,127 @@ import React, { useEffect, useState } from "react";
 
 function Xstate() {
   const [countries, setCountries] = useState([]);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-
+  const [states, setstates] = useState([]);
+  const [cities, setcities] = useState([]);
+  const [countryName, setcountryName] = useState("");
+  const [stateName, setstateName] = useState("");
+  const [cityName, setcityName] = useState("");
   useEffect(() => {
     axios
       .get("https://crio-location-selector.onrender.com/countries")
-      .then((res) => setCountries(res.data))
-      .catch((err) => console.error("Error fetching countries:", err));
+      .then((res) => {
+        setCountries(res.data);
+        // console.log(res.data);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }, []);
 
   useEffect(() => {
-    if (selectedCountry) {
-      axios
-        .get(
-          `https://crio-location-selector.onrender.com/country=${selectedCountry}/states`
-        )
-        .then((res) => {
-          setStates(res.data);
-          setSelectedState("");
-          setCities([]);
-          setSelectedCity("");
-        })
-        .catch((err) => console.error("Error fetching states:", err));
-    }
-  }, [selectedCountry]);
+    axios
+      .get(
+        `https://crio-location-selector.onrender.com/country=${countryName}/states`
+      )
+      .then((res) => {
+        setstates(res.data);
+        console.log(res.data);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }, [countryName]);
 
   useEffect(() => {
-    if (selectedCountry && selectedState) {
-      axios
-        .get(
-          `https://crio-location-selector.onrender.com/country=${selectedCountry}/state=${selectedState}/cities`
-        )
-        .then((res) => {
-          setCities(res.data);
-          setSelectedCity("");
-        })
-        .catch((err) => console.error("Error fetching cities:", err));
-    }
-  }, [selectedCountry, selectedState]);
+    axios
+      .get(
+        `https://crio-location-selector.onrender.com/country=${countryName}/state=${stateName}/cities`
+      )
+      .then((res) => {
+        setcities(res.data);
+        console.log(res.data);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }, [countryName, stateName]);
 
   return (
-    <div className="city-selector">
-      <h1>Select Location</h1>
-      <div className="dropdowns">
-        <select
-          value={selectedCountry}
-          onChange={(e) => setSelectedCountry(e.target.value)}
-          className="dropdown"
-        >
-          <option value="" disabled>
-            Select Country
-          </option>
-          {countries.map((country) => (
-            <option key={country} value={country}>
-              {country}
-            </option>
-          ))}
-        </select>
+    <div
+      style={{
+        // display: "flex",
+        justifyContent: "space-around",
+        alignItems: "center",
+        padding: "5rem",
+      }}
+    >
+      <div className="country">
+        {countries && (
+          <select
+            value={countryName}
+            onChange={(e) => {
+              setcountryName(e.target.value);
+              console.log(e.target.value);
+            }}
+          >
+            <option value="option1">Select your Country</option>
+            {countries.map((ele, index) => (
+              <option key={index} value={ele}>
+                {ele}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
-        <select
-          value={selectedState}
-          onChange={(e) => setSelectedState(e.target.value)}
-          className="dropdown"
-          disabled={!selectedCountry}
-        >
-          <option value="" disabled>
-            Select State
-          </option>
-          {states.map((state) => (
-            <option key={state} value={state}>
-              {state}
-            </option>
-          ))}
-        </select>
+      {/* //////////////////////////////////// */}
 
+      <div className="state">
         <select
-          value={selectedCity}
-          onChange={(e) => setSelectedCity(e.target.value)}
-          className="dropdown"
-          disabled={!selectedCountry && !selectedState}
+          value={stateName}
+          onChange={(e) => {
+            setstateName(e.target.value);
+            setcityName(""); // Reset city selection when changing the state
+          }}
+          disabled={!countryName || !states.length}
         >
-          <option value="" disabled>
-            Select City
-          </option>
-          {cities.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
+          <option value="option1">Select your State</option>
+          {states.length > 0 &&
+            states.map((ele, index) => (
+              <option key={index} value={ele}>
+                {ele}
+              </option>
+            ))}
         </select>
       </div>
-      {selectedCity && (
-        <h2 className="result">
-          You selected <span className="highlight">{selectedCity},</span>
-          <span className="fade">
-            {" "}
-            {selectedState},{selectedCountry}
-          </span>
-        </h2>
-      )}
+
+      <div className="cities">
+        <select
+          value={cityName}
+          onChange={(e) => {
+            setcityName(e.target.value);
+          }}
+          disabled={!countryName || !stateName || !cities.length}
+        >
+          <option value="option1">Select your City</option>
+          {cities.length > 0 &&
+            cities.map((ele, index) => (
+              <option key={index} value={ele}>
+                {ele}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      {countryName && stateName && cityName ? (
+        <p>
+          <b>
+            You selected <span style={{}}>{cityName ? cityName : "City"}</span>
+          </b>
+          , {stateName ? stateName : "State"},{" "}
+          {countryName ? countryName : "Country"}
+        </p>
+      ) : null}
     </div>
   );
 }
